@@ -138,4 +138,44 @@ describe 'NagiosHarder::Site' do
     end
     client.enable_service_notifications('example.com', 'http')
   end
+
+  it 'should let you schedule servicegroup service downtime' do
+    client.should_receive(:post_command) do |params|
+      params[:servicegroup].should == 'servicegroup'
+      params[:service].should      == 'all'
+      params[:host].should         == nil
+      params[:cmd_typ].should      == 122
+    end
+    client.schedule_servicegroup_service_downtime('servicegroup')
+  end
+
+  it 'should let you schedule servicegroup host downtime' do
+    client.should_receive(:post_command) do |params|
+      params[:servicegroup].should == 'servicegroup'
+      params[:service].should      == nil
+      params[:host].should         == 'all'
+      params[:cmd_typ].should      == 121
+    end
+    client.schedule_servicegroup_host_downtime('servicegroup')
+  end
+
+  it 'should let you schedule hostgroup service downtime' do
+    client.should_receive(:post_command) do |params|
+      params[:hostgroup].should == 'hostgroup'
+      params[:service].should      == 'all'
+      params[:host].should         == nil
+      params[:cmd_typ].should      == 85
+    end
+    client.schedule_hostgroup_service_downtime('hostgroup')
+  end
+
+  it 'should let you schedule hostgroup host downtime' do
+    client.should_receive(:post_command) do |params|
+      params[:hostgroup].should == 'hostgroup'
+      params[:service].should      == nil
+      params[:host].should         == 'all'
+      params[:cmd_typ].should      == 84
+    end
+    client.schedule_hostgroup_host_downtime('hostgroup')
+  end
 end

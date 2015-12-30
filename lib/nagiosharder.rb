@@ -162,7 +162,7 @@ class NagiosHarder
      if request[:fixed] == 0
         request[:hours]   = options[:hours]
         request[:minutes] = options[:minutes]
-      end
+     end
 
       request[:start_time] = formatted_time_for(options[:start_time] || Time.now)
       request[:end_time]   = formatted_time_for(options[:end_time]   || Time.now + 1.hour)
@@ -301,6 +301,70 @@ class NagiosHarder
       servicegroups
     end
 
+    def schedule_servicegroup_service_downtime( servicegroup, options = {})
+      options[:type] ||= :fixed
+
+      request = {
+        :cmd_typ => COMMANDS[:schedule_servicegroup_service_downtime],
+        :com_author => options[:author] || "#{@user} via nagiosharder",
+        :com_data => options[:comment] || 'scheduled downtime by nagiosharder',
+        :childoptions => 0,
+        :servicegroup => servicegroup,
+        :service => options[:service] || 'all',
+        :trigger => 0
+      }
+
+      # FIXME we could use some option checking...
+
+      request[:fixed] = case options[:type].to_sym
+                        when :fixed then 1
+                        when :flexible then 0
+                        else 1 # default to fixed
+                        end
+
+      if request[:fixed] == 0
+        request[:hours]   = options[:hours]
+        request[:minutes] = options[:minutes]
+      end
+
+      request[:start_time] = formatted_time_for(options[:start_time] || Time.now)
+      request[:end_time]   = formatted_time_for(options[:end_time]   || Time.now + 1.hour)
+
+      post_command(request)
+    end
+
+    def schedule_servicegroup_host_downtime( servicegroup, options = {})
+      options[:type] ||= :fixed
+
+      request = {
+        :cmd_typ => COMMANDS[:schedule_servicegroup_host_downtime],
+        :com_author => options[:author] || "#{@user} via nagiosharder",
+        :com_data => options[:comment] || 'scheduled downtime by nagiosharder',
+        :childoptions => 0,
+        :servicegroup => servicegroup,
+        :host => options[:host] || 'all',
+        :trigger => 0
+      }
+
+      # fixme we could use some option checking...
+
+      request[:fixed] = case options[:type].to_sym
+                        when :fixed then 1
+                        when :flexible then 0
+                        else 1 # default to fixed
+                        end
+
+      if request[:fixed] == 0
+        request[:hours]   = options[:hours]
+        request[:minutes] = options[:minutes]
+      end
+
+      request[:start_time] = formatted_time_for(options[:start_time] || Time.now)
+      request[:end_time]   = formatted_time_for(options[:end_time]   || Time.now + 1.hour)
+
+      post_command(request)
+    end
+
     def hostgroups_detail(hostgroup = "all")
       hostgroups_detail_url = "#{status_url}?hostgroup=#{hostgroup}&style=hostdetail&embedded=1&noheader=1&limit=0"
       response = get(hostgroups_detail_url)
@@ -313,6 +377,70 @@ class NagiosHarder
       end
 
       hosts
+    end
+
+    def schedule_hostgroup_service_downtime( hostgroup, options = {})
+      options[:type] ||= :fixed
+
+      request = {
+        :cmd_typ => COMMANDS[:schedule_hostgroup_service_downtime],
+        :com_author => options[:author] || "#{@user} via nagiosharder",
+        :com_data => options[:comment] || 'scheduled downtime by nagiosharder',
+        :childoptions => 0,
+        :hostgroup => hostgroup,
+        :service => options[:service] || 'all',
+        :trigger => 0
+      }
+
+      # fixme we could use some option checking...
+
+      request[:fixed] = case options[:type].to_sym
+                        when :fixed then 1
+                        when :flexible then 0
+                        else 1 # default to fixed
+                        end
+
+      if request[:fixed] == 0
+        request[:hours]   = options[:hours]
+        request[:minutes] = options[:minutes]
+      end
+
+      request[:start_time] = formatted_time_for(options[:start_time] || Time.now)
+      request[:end_time]   = formatted_time_for(options[:end_time]   || Time.now + 1.hour)
+
+      post_command(request)
+    end
+
+    def schedule_hostgroup_host_downtime( hostgroup, options = {})
+      options[:type] ||= :fixed
+
+      request = {
+        :cmd_typ => COMMANDS[:schedule_hostgroup_host_downtime],
+        :com_author => options[:author] || "#{@user} via nagiosharder",
+        :com_data => options[:comment] || 'scheduled downtime by nagiosharder',
+        :childoptions => 0,
+        :hostgroup => hostgroup,
+        :host => options[:host] || 'all',
+        :trigger => 0
+      }
+
+      # fixme we could use some option checking...
+
+      request[:fixed] = case options[:type].to_sym
+                        when :fixed then 1
+                        when :flexible then 0
+                        else 1 # default to fixed
+                        end
+
+      if request[:fixed] == 0
+        request[:hours]   = options[:hours]
+        request[:minutes] = options[:minutes]
+      end
+
+      request[:start_time] = formatted_time_for(options[:start_time] || Time.now)
+      request[:end_time]   = formatted_time_for(options[:end_time]   || Time.now + 1.hour)
+
+      post_command(request)
     end
 
     def disable_service_notifications(host, service, options = {})
