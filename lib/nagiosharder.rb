@@ -301,6 +301,20 @@ class NagiosHarder
       servicegroups
     end
 
+    def servicegroups_detail(servicegroup = "all")
+      servicegroups_summary_url = "#{status_url}?servicegroup=#{servicegroup}&style=overview"
+      response = get(servicegroups_summary_url)
+
+      raise "wtf #{servicegroups_summary_url}? #{response.code}" unless response.code == 200
+
+      servicegroups = {}
+      parse_service_overview_html(response) do |overview|
+        servicegroups[overview[:host]] = overview
+      end
+
+      servicegroups
+    end
+
     def hostgroups_detail(hostgroup = "all")
       hostgroups_detail_url = "#{status_url}?hostgroup=#{hostgroup}&style=hostdetail&embedded=1&noheader=1&limit=0"
       response = get(hostgroups_detail_url)
@@ -459,6 +473,37 @@ class NagiosHarder
       counts['critical'] = column.inner_text.match(/(\d+)\s(CRITICAL)/)[1] rescue 0
       counts['unknown'] = column.inner_text.match(/(\d+)\s(UNKNOWN)/)[1] rescue 0
       return link, counts
+    end
+
+    def parse_service_overview_html(response)
+      doc = Nokogiri::HTML(response.to_s)
+      rows = doc.css('table.status > tr')
+
+      rows.each do |row|
+        columns = Nokogiri::HTML(row.inner_html).css('body > td').to_a
+        if columns.any?
+
+          # Host column
+          host = columns[0].css('a').text.strip
+          status = columns[1].inner_html if columns[1]
+          services = columns[2].css('a').text.strip if columns[2]
+        end
+
+        row_filled = [host,status,services].any?(&:blank?)
+
+        unless row_filled
+          host_extinfo_url = "#{extinfo_url}?type=1&host=#{host}"
+          status_info = "#{status_url}?&host=#{host}"
+
+          hsh = Hashie::Mash.new :host => host,
+            :status => status,
+            :services => services,
+            :extended_info => status_info,
+            :host_extinfo_url => host_extinfo_url
+
+          yield hsh
+        end
+      end
     end
 
     def parse_detail_html(response)
